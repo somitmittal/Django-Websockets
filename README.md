@@ -1,4 +1,4 @@
-# Django Production-Readiness Assignment
+# Django WebScocket Service
 
 This repository contains a Django-based WebSocket service with blue-green deployment capabilities, observability features, and a CI pipeline.
 
