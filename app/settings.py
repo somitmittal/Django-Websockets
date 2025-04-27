@@ -22,7 +22,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
-    'app.chat',
+    'app',
+    'app.chat'
 ]
 
 MIDDLEWARE = [
@@ -108,3 +109,6 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+# Ensure the DJANGO_SETTINGS_MODULE is set correctly
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
