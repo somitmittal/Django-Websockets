@@ -1,0 +1,42 @@
+# GitLab CI configuration for Django WebSocket Service
+
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DJANGO_SETTINGS_MODULE: "app.settings"
+
+before_script:
+  - pip install -r requirements.txt
+
+build:
+  stage: build
+  script:
+    - docker-compose build
+
+pytest:
+  stage: test
+  script:
+    - pytest
+
+monitor:
+  stage: test
+  script:
+    - bash scripts/monitor.sh &
+    - sleep 20
+    - kill $!
+
+archive_logs:
+  stage: test
+  script:
+    - tar -czf logs.tar.gz logs/
+  artifacts:
+    paths:
+      - logs.tar.gz
+
+deploy:
+  stage: deploy
+  script:
+    - docker-compose up -d
