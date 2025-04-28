@@ -19,7 +19,11 @@ build:
 pytest:
   stage: test
   script:
-    - pytest
+    - coverage run -m pytest
+    - coverage xml
+  artifacts:
+    reports:
+      cobertura: coverage.xml
 
 monitor:
   stage: test

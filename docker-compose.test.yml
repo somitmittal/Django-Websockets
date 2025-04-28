@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  test:
+    build: .
+    environment:
+      - PYTHONPATH=/app
+      - DJANGO_SETTINGS_MODULE=app.settings
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: >
+      sh -c "coverage run -m pytest
+      && coverage xml
+      && coverage report"
