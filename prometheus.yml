@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'django-app-blue'
+    static_configs:
+      - targets: ['app_blue:8000']
+    metrics_path: /metrics
+  - job_name: 'django-app-green'
+    static_configs:
+      - targets: ['app_green:8000']
+    metrics_path: /metrics

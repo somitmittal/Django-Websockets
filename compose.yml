@@ -1,10 +1,16 @@
+# Concurrency tuning:
+# - ASGI workers: Set via `uvicorn --workers`. For I/O-bound (WebSockets, async views), 1-2 workers per CPU core is typical.
+#   Example: `uvicorn app.asgi:application --host 0.0.0.0 --port 8000 --workers 4`
+# - Thread-pool workers: Uvicorn uses async event loop (default: uvloop), so thread-pool is less relevant unless you have blocking code.
+# - For CPU-bound tasks, increase workers; for I/O-bound (most Django Channels apps), fewer workers but more async tasks per worker is efficient.
+# - See Django Channels ASYNC_CAPABLE docs for more: https://channels.readthedocs.io/en/stable/topics/consumers.html#async-consumers
 version: '3.8'
 
 services:
   app_blue:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     command: uvicorn app.asgi:application --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
@@ -14,7 +20,7 @@ services:
   app_green:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     command: uvicorn app.asgi:application --host 0.0.0.0 --port 8000
     ports:
       - "8001:8000"
