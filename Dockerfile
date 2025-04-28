@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Set work directory
-WORKDIR /
+WORKDIR /app
 
 # Install build dependencies
 RUN apt-get update && \
