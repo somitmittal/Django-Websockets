@@ -77,9 +77,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"session": self.session_id, "count": self.message_count}))
             self.request_id = str(uuid.uuid4())
             logger.info("WebSocket connected", extra={"request_id": self.request_id, "event": "connect"})
-            active_ws_connections.append(self)
+            ChatConsumer.active_ws_connections.append(self)
             asyncio.create_task(self.send_heartbeat())
         except Exception as e:
+            logger.error(f"Exception: str({e})")
             error_count.inc()
             logger.error("Error connecting WebSocket", extra={"request_id": self.request_id, "event": "error", "extra": {"error": str(e)}})
 
@@ -90,7 +91,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Save the message count in the session store
             if self.session_id:
                 ChatConsumer.sessions[self.session_id] = self.message_count
-                active_connections.remove(self.session_id)
             # Leave room group
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -99,11 +99,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # send a bye message
             await self.send(text_data=json.dumps({"bye": True, "total": self.message_count}))
             logger.info("WebSocket disconnected", extra={"request_id": self.request_id, "event": "disconnect", "extra": {"close_code": close_code}})
-            active_ws_connections.remove(self)
+            ChatConsumer.active_ws_connections.remove(self)
             shutdown_time.observe(time.time() - start)
         except Exception as e:
-            error_count.inc()
-            logger.error("Error disconnecting WebSocket", extra={"request_id": self.request_id, "event": "error", "extra": {"error": str(e)}})
+            if (close_code != 1005):
+                logger.error(f"Exception: str({e})")
+                error_count.inc()
+                logger.error("Error disconnecting WebSocket", extra={"request_id": self.request_id, "event": "error", "extra": {"error": str(e)}})
+            else:
+                logger.info("WebSocket disconnected by user", extra={"request_id": self.request_id, "event": "disconnect", "extra": {"close_code": close_code}})
+                ChatConsumer.active_ws_connections.remove(self)
 
     async def receive(self, text_data):
         try:

@@ -31,24 +31,25 @@ if ! curl -fsS "http://localhost:$APP_PORT/metrics" | grep -q "python_gc_objects
 fi
 echo "Smoke tests passed."
 
+# Flip traffic in Nginx
+if [ "$NEXT_COLOR" == "blue" ]; then
+    sed -i '' 's/server app_green:8000;/server app_blue:8000;/' nginx.conf
+elif [ "$NEXT_COLOR" == "green" ]; then
+    sed -i '' 's/server app_blue:8000;/server app_green:8000;/' nginx.conf
+fi
+
+# Reload Nginx (replace nginx_container_name with your actual container name)
+NGINX_CONTAINER=$(docker ps --filter "name=nginx" --format "{{.Names}}" | head -n 1)
+echo "Reloading Nginx..."
+echo $NGINX_CONTAINER
+docker exec "$NGINX_CONTAINER" nginx -s reload
+
 # Flip traffic
 if [ "$NEXT_COLOR" == "blue" ]; then
     docker-compose stop app_green
 elif [ "$NEXT_COLOR" == "green" ]; then
     docker-compose stop app_blue
 fi
-
-# Flip traffic in Nginx
-if [ "$NEXT_COLOR" == "blue" ]; then
-    sed -i '' 's/server app_green:8001;/server app_blue:8000;/' ./nginx.conf
-elif [ "$NEXT_COLOR" == "green" ]; then
-    sed -i '' 's/server app_blue:8000;/server app_green:8001;/' ./nginx.conf
-fi
-
-# Reload Nginx (replace nginx_container_name with your actual container name)
-NGINX_CONTAINER=$(docker ps --filter "name=nginx" --format "{{.Names}}" | head -n 1)
-echo "Reloading Nginx..."
-docker exec "$NGINX_CONTAINER" nginx -s reload
 
 # Retire the old color
 if [ "$CURRENT_COLOR" == "blue" ]; then
