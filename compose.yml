@@ -38,6 +38,7 @@ services:
     image: prom/prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert_active_connections.yml:/etc/prometheus/alert_active_connections.yml
     ports:
       - "9090:9090"
 

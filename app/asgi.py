@@ -1,4 +1,5 @@
 import os
+from venv import logger
 import django
 from django.core.asgi import get_asgi_application
 
@@ -21,12 +22,14 @@ application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
         URLRouter([
             path("ws/chat/", ChatConsumer.as_asgi()),
+            path("ws/chat", ChatConsumer.as_asgi()),
         ])
     ),
 })
 set_ready()
 
 def handle_shutdown(signum, frame):
+    logger.info('Received SIGTERM, Shutting down...')
     set_not_ready()
     sys.exit(0)
 
