@@ -38,6 +38,18 @@ elif [ "$NEXT_COLOR" == "green" ]; then
     docker-compose stop app_blue
 fi
 
+# Flip traffic in Nginx
+if [ "$NEXT_COLOR" == "blue" ]; then
+    sed -i '' 's/server app_green:8001;/server app_blue:8000;/' ./nginx.conf
+elif [ "$NEXT_COLOR" == "green" ]; then
+    sed -i '' 's/server app_blue:8000;/server app_green:8001;/' ./nginx.conf
+fi
+
+# Reload Nginx (replace nginx_container_name with your actual container name)
+NGINX_CONTAINER=$(docker ps --filter "name=nginx" --format "{{.Names}}" | head -n 1)
+echo "Reloading Nginx..."
+docker exec "$NGINX_CONTAINER" nginx -s reload
+
 # Retire the old color
 if [ "$CURRENT_COLOR" == "blue" ]; then
     docker-compose down app_blue
