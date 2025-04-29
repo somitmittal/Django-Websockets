@@ -49,48 +49,57 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.session_id = None
 
     async def connect(self):
-        active_connections.inc()
-        # Parse session_id from query string, or generate a new one
-        query_string = self.scope.get("query_string", b"").decode()
-        params = parse_qs(query_string)
-        session_id = params.get("session", [None])[0]
-        if session_id is None:
-            session_id = str(uuid.uuid4())
-        self.session_id = session_id
+        try:
+            active_connections.inc()
+            # Parse session_id from query string, or generate a new one
+            query_string = self.scope.get("query_string", b"").decode()
+            params = parse_qs(query_string)
+            session_id = params.get("session", [None])[0]
+            if session_id is None:
+                session_id = str(uuid.uuid4())
+            self.session_id = session_id
 
-        # Resume message count if session exists, else start at 0
-        self.message_count = ChatConsumer.sessions.get(self.session_id, 0)
+            # Resume message count if session exists, else start at 0
+            self.message_count = ChatConsumer.sessions.get(self.session_id, 0)
 
-        self.room_name = 'chat_room'
-        self.room_group_name = 'chat_%s' % self.room_name
+            self.room_name = 'chat_room'
+            self.room_group_name = 'chat_%s' % self.room_name
 
-        # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+            # Join room group
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
 
-        await self.accept()
-        # Optionally, send the session_id to the client
-        await self.send(text_data=json.dumps({"session": self.session_id, "count": self.message_count}))
-        self.request_id = str(uuid.uuid4())
-        logger.info("WebSocket connected", extra={"request_id": self.request_id, "event": "connect"})
+            await self.accept()
+            # Optionally, send the session_id to the client
+            await self.send(text_data=json.dumps({"session": self.session_id, "count": self.message_count}))
+            self.request_id = str(uuid.uuid4())
+            logger.info("WebSocket connected", extra={"request_id": self.request_id, "event": "connect"})
+            asyncio.create_task(self.send_heartbeat())
+        except Exception as e:
+            error_count.inc()
+            logger.error("Error connecting WebSocket", extra={"request_id": self.request_id, "event": "error", "extra": {"error": str(e)}})
 
     async def disconnect(self, close_code):
-        start = time.time()
-        active_connections.dec()
-        # Save the message count in the session store
-        if self.session_id:
-            ChatConsumer.sessions[self.session_id] = self.message_count
-        # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-        # send a bye message
-        await self.send(text_data=json.dumps({"bye": True, "total": self.message_count}))
-        logger.info("WebSocket disconnected", extra={"request_id": self.request_id, "event": "disconnect", "extra": {"close_code": close_code}})
-        shutdown_time.observe(time.time() - start)
+        try:
+            start = time.time()
+            active_connections.dec()
+            # Save the message count in the session store
+            if self.session_id:
+                ChatConsumer.sessions[self.session_id] = self.message_count
+            # Leave room group
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+            # send a bye message
+            await self.send(text_data=json.dumps({"bye": True, "total": self.message_count}))
+            logger.info("WebSocket disconnected", extra={"request_id": self.request_id, "event": "disconnect", "extra": {"close_code": close_code}})
+            shutdown_time.observe(time.time() - start)
+        except Exception as e:
+            error_count.inc()
+            logger.error("Error disconnecting WebSocket", extra={"request_id": self.request_id, "event": "error", "extra": {"error": str(e)}})
 
     async def receive(self, text_data):
         try:
@@ -129,6 +138,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def send_heartbeat(self):
         while True:
+            logger.info("Sending heartbeat", extra={"request_id": self.request_id, "event": "heartbeat"})
             await asyncio.sleep(30)
             await self.channel_layer.group_send(
                 self.room_group_name,
