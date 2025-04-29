@@ -17,8 +17,8 @@ Grafana dashboards are pre-configured to visualize these metrics.
 
 ### Health Checks
 
-- **Liveness Probe**: Endpoint `/healthz` to check if the service is alive.
-- **Readiness Probe**: Endpoint `/readyz` to check if the service is ready to accept traffic.
+- **Liveness Probe**: Endpoint `/health` to check if the service is alive.
+- **Readiness Probe**: Endpoint `/ready` to check if the service is ready to accept traffic.
 
 ## Alerts
 

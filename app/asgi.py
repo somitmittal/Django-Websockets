@@ -2,6 +2,10 @@ import os
 import django
 from django.core.asgi import get_asgi_application
 
+from app.views import set_ready, set_not_ready
+import signal
+import sys
+
 # Initialize Django first
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
 django.setup()
@@ -20,3 +24,11 @@ application = ProtocolTypeRouter({
         ])
     ),
 })
+set_ready()
+
+def handle_shutdown(signum, frame):
+    set_not_ready()
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, handle_shutdown)
+signal.signal(signal.SIGINT, handle_shutdown)

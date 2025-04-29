@@ -1,0 +1,11 @@
+groups:
+  - name: websocket-alerts
+    rules:
+      - alert: NoActiveConnections
+        expr: active_connections == 0
+        for: 60s
+        labels:
+          severity: critical
+        annotations:
+          summary: "No active WebSocket connections for over 60 seconds"
+          description: "The number of active WebSocket connections has dropped to zero for more than 60 seconds. Check the health of your chat service."

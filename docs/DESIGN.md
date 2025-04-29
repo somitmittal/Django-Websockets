@@ -19,7 +19,7 @@ Utilize multi-stage Docker builds to optimize image size and build time. Separat
 
 ## Health Probes
 
-Implement health probes to monitor the application's liveness and readiness. Use endpoints `/healthz` for liveness and `/readyz` for readiness checks.
+Implement health probes to monitor the application's liveness and readiness. Use endpoints `/health` for liveness and `/ready` for readiness checks.
 
 ## Graceful Shutdown
 

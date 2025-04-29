@@ -11,7 +11,7 @@ SECRET_KEY = 'your-secret-key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  # For development only; do not use in production!
 
 # Application definition
 INSTALLED_APPS = [
@@ -110,6 +110,10 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+# monkey patch to get rid of message below in docker
+from django.http.request import HttpRequest
+HttpRequest.get_host = HttpRequest._get_raw_host
 
 # Ensure the DJANGO_SETTINGS_MODULE is set correctly
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')

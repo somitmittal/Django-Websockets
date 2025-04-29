@@ -37,7 +37,7 @@ To switch between blue and green deployments:
 
 ## Observability
 - Metrics are exposed at `/metrics`.
-- Health checks are available at `/healthz` and `/readyz`.
+- Health checks are available at `/health` and `/ready`.
 
 ## CI Pipeline
 The CI pipeline is configured to build, test, and deploy the application using GitHub Actions.
