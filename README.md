@@ -47,4 +47,4 @@ The CI pipeline is configured to build, test, and deploy the application using G
 - [OBSERVABILITY.md](docs/OBSERVABILITY.md): Metrics catalogue and dashboards.
 
 ## Optional
-- The UI is available at: [https://stupendous-twilight-454c91.netlify.app/logs]
+- The UI is available at: [Link][https://stupendous-twilight-454c91.netlify.app/logs]
